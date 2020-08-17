@@ -1,0 +1,50 @@
+---
+title: "marshallproj"
+author: "PhiPrime"
+date: "8/17/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+This file is created to briefly explore data from **[The Marshall Project on incarcerated people's political views]()**  
+```{r message = FALSE}
+url <- "https://raw.githubusercontent.com/themarshallproject/incarcerated_survey/master/data/incarcerated_survey_responses-marshallproject_slate-march_2019.csv"
+fileLoc <- "./Data/marshall.csv"
+download.file(url, fileLoc, method = "curl")
+dat <- read.csv(fileLoc)
+```
+The following list is the variable names of the data  
+```{r}
+names(dat)
+```
+A lot of these variables seem to possibly be either discrete or continuous so we'll now look at the unique responses for each variable.  
+```{r}
+sapply(dat, unique)
+```
+
+It can be seen above that most of these variables are discrete factors. This would not prove too difficult to clean, with the exception of `how_get_news` (column 12), which would require some processing to make multiple new logical variables.  
+
+For now we'll convert these variables to factors with the exception of `how_get_news` and the identities  
+```{r}
+fdat <- dat
+fdat[sapply(fdat, is.character)] <- 
+  lapply(fdat[sapply(fdat, is.character)], as.factor)
+```
+
+We'll now look at the summary of each of these catagories. Since the conversion to factor was quick, the logical questions are summarized as a numeric column. The percent that elected "yes" is represented by the mean in these cases.  
+```{r}
+summary(fdat)
+```
+The difference in TRUE/FALSE for Male or Female would require further investigation for the discrepency which would be explored should this data set be selected.
+
+## Conclusion  
+This data would require a bit of cleaning but nothing too complex. This is a viable source for the project.  
+
+
+
+
+
+
