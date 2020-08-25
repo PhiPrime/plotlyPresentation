@@ -1,0 +1,102 @@
+---
+title: "Electricity Production by Country"
+author: "Luke Coughlin"
+date: "8/25/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+## Download Data
+url <- "https://www.cia.gov/library/publications/resources/the-world-factbook/fields/rawdata_252.txt"
+fileLoc <- "./Data/electricity.txt"
+download.file(url, fileLoc)
+dat <- read.delim(fileLoc, header = FALSE, sep = "\t", skip = 2)
+```
+
+```{r}
+## Clean Data
+tidy <- as.data.frame(t(sapply(1:nrow(dat), function(x){
+  (strsplit(gsub("  +", "/", dat[x,]), "/"))[[1]]})))
+colnames(tidy) <- c("Rank", "Country", "Production", "Date")
+library(tidyverse)
+tidy <- mutate(tidy, Production = as.numeric(gsub(",", "", Production)))
+
+# Get country codes & add to dataset
+codes <- read.csv("https://raw.githubusercontent.com/plotly/datasets/master/2014_world_gdp_with_codes.csv")
+codes <- mutate(codes, Country = COUNTRY, Code = CODE) %>%
+  select(Country, Code)
+tidy <- merge(tidy, codes)
+
+#Translate Production to a consumable value
+abbvStdForm <- function(x) {
+  #x is a single numeric value
+  if (x < 10^6) return(x)
+  if (x < 10^9) {
+    return(paste0(as.character(round(x/10^6)), " M"))
+  }
+  if (x < 10^12) {
+    return(paste0(as.character(round(x/10^9)), " B"))
+  }
+  if (x < 10^15) {
+    return(paste0(as.character(round(x/10^12)), " T"))
+  }
+  return(x)
+}
+
+tidy$abbvProd <- sapply(tidy$Production, abbvStdForm)
+
+#Create hover text
+tidy$hover <- with(tidy, 
+                   paste0(Country, "<br>",
+                          "Rank: ", Rank, "<br>",
+                          "Annual Production: ", abbvProd, "<br>",
+                          "Information ",
+                          ifelse(grepl("est", Date), "Estimated ", ""), 
+                          "from ", gsub(" est.", "", Date)))
+
+```
+
+## Electricity Production  
+This plot shows all of the world's countries colored according to how much electricity they each produce.  
+```{r message = FALSE}
+library(plotly)
+library(grDevices)
+
+
+#Make borders black
+borders <- list(color = toRGB("#000000"))
+
+#Creating palettes
+pal <- colorRampPalette(c("#000000", "#FFFF00"))
+cols <- pal(max(as.numeric(tidy$Rank)))
+
+
+#Create plot 
+plot_ly(tidy, z = ~as.numeric(log(Production, base = 10)), 
+        text = ~hover, 
+        locations = ~Code,
+        type = "choropleth",
+        color = ~as.numeric(Rank), colors = cols, 
+        marker = list(line = borders)) %>%
+  layout(title = 'Country by Electicity Output<br>(Kilowatt-Hours)<br>Source: <a href ="https://www.cia.gov/library/publications/resources/the-world-factbook/fields/252rank.html">CIA World Factbook</a>',
+         annotations = list(
+           x = 1.35, y = 0.2, 
+text = "Value Abbreviations:<br>M - Million<br>B - Billion<br>T - Trillion",
+           showarrow = FALSE
+         )) %>%
+  colorbar(title = "Log<sub>10</sub> of Production",
+           tickvals = c(5,9,12))
+```
+
+
+## Thanks for coming to my TED talk  
+
+
+
+
+
