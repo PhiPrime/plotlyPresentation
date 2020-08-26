@@ -94,7 +94,9 @@ text = "Value Abbreviations:<br>M - Million<br>B - Billion<br>T - Trillion",
 ```
 
 
-## Thanks for coming to my TED talk  
+## Some Things I Learned From This Project  
+* Plotly's choropleth map of countries is doable however it lacks more exact detail on the borders of countries, which is easiest seen when zooming into smaller islands.  
+* Using an output of `ioslides_presentation` can easily create presentations but requires additional manipulation to show some aesthetics, such as different type of alignment, size, and color of text on a slide.  
 
 
 
